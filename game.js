@@ -5,7 +5,93 @@ let remainingO = 3;
 let selectedCellIndex = null;
 let selectedSymbol = null;
 
+function checkSymbolsCount() {
+    const cells = document.querySelectorAll('.cell');
+    let xCount = 0;
+    let oCount = 0;
+    let invalidPlacement = false;
+    cells.forEach(cell => {
+        if (cell.textContent === 'X') {
+            xCount++;
+        } else if (cell.textContent === 'O') {
+            oCount++;
+        }
+    
+
+    const cellIndex = Array.from(cells).indexOf(cell);
+        if (!setupPhase && !checkPlacementValidity(cellIndex)) {
+            invalidPlacement = true;
+        }
+    });
+
+    if (!setupPhase && (xCount !== 3 || oCount !== 3)) {
+        alert("Missing 'X' or 'O'. Please ensure there are exactly 3 'X' and 3 'O' before starting the game.");
+        return false;
+    }
+
+    if (invalidPlacement) {
+        alert("Invalid placement. You cannot have more than 2 'X' or 'O' symbols vertically or horizontally adjacent to each other.");
+        return false;
+    }
+
+
+    return true;
+}
+
+function checkPlacementValidity(cellIndex) {
+    const cells = document.querySelectorAll('.cell');
+    const cell = cells[cellIndex];
+    const rowIndex = Math.floor(cellIndex / 3);
+    const colIndex = cellIndex % 3;
+
+    let horizontalCount = 1;
+    for (let i = colIndex - 1; i >= 0; i--) {
+        if (cells[rowIndex * 3 + i].textContent === cell.textContent) {
+            horizontalCount++;
+        } else {
+            break;
+        }
+    }
+    for (let i = colIndex + 1; i < 3; i++) {
+        if (cells[rowIndex * 3 + i].textContent === cell.textContent) {
+            horizontalCount++;
+        } else {
+            break;
+        }
+    }
+
+    let verticalCount = 1;
+    for (let i = rowIndex - 1; i >= 0; i--) {
+        if (cells[i * 3 + colIndex].textContent === cell.textContent) {
+            verticalCount++;
+        } else {
+            break;
+        }
+    }
+    for (let i = rowIndex + 1; i < 3; i++) {
+        if (cells[i * 3 + colIndex].textContent === cell.textContent) {
+            verticalCount++;
+        } else {
+            break;
+        }
+    }
+
+    if (!setupPhase) {
+        if (cell.textContent === 'X' && horizontalCount > 2 || verticalCount > 2) {
+             return false;
+        } else if (cell.textContent === 'O' && (horizontalCount > 2 || verticalCount > 2)) {
+            
+            return false;
+        }
+    }
+
+    return true;
+}
 function handleCellClick(cellIndex) {
+    if (!checkSymbolsCount()) {
+        return;
+    }
+
     const targetCell = document.querySelectorAll('.cell')[cellIndex];
     const targetCellContent = targetCell.textContent;
 
@@ -21,6 +107,10 @@ function handleCellClick(cellIndex) {
             currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
         }
         return;
+    }
+
+    if (!checkPlacementValidity(cellIndex)) {
+        return; 
     }
 
     if (selectedCellIndex === null) {
@@ -46,7 +136,7 @@ function handleCellClick(cellIndex) {
             }
         }
 
-        selectedCellIndex = null; 
+        selectedCellIndex = null;
     }
 }
 function checkWin() {
@@ -105,3 +195,23 @@ document.querySelectorAll('.cell').forEach((cell) => {
         }
     });
 });
+
+function generateInviteLink() {
+    const player1Name = prompt("Enter your name:");
+    const player2Name = prompt("Enter your friend's name:");
+    const inviteLink = window.location.origin + "/?player1=" + player1Name + "&player2=" + player2Name;
+    alert("Share this link with your friend: " + inviteLink);
+}
+
+document.getElementById('inviteButton').addEventListener('click', generateInviteLink);
+
+function getPlayerNamesFromURL() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const player1Name = urlParams.get('player1') || 'Player 1';
+    const player2Name = urlParams.get('player2') || 'Player 2';
+    return { player1Name, player2Name };
+}
+
+const { player1Name, player2Name } = getPlayerNamesFromURL();
+document.getElementById('player1').textContent = player1Name;
+document.getElementById('player2').textContent = player2Name;
